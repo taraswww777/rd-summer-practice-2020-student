@@ -58,6 +58,11 @@
     flex-wrap: nowrap;
 }
 
+.scope:before {
+    content: '[';
+    display: inline-block;
+}
+
 .scope__item {
     margin: 0 3px;
     font-weight: bold;
@@ -87,4 +92,8 @@
 .scope__item--dies,
 .scope__item--lives {
     color: white;
+}
+
+.gameMap{
+    border: 1px solid black;
 }

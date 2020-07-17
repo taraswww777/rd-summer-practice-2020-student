@@ -5,44 +5,44 @@
  *  Для получения доступа к DOM элементу следует
  *  использовать document.getElementById('elementId')
  */
-/*
-$containerGame
-$loading
-$error
+const $containerGame = document.getElementById('containerGame');
+const $loading = document.getElementById('loadingBlock');
+const $error = document.getElementById('errorBlock');
 
-$mapCanvas
-$gameCaption
-$switchTimer
-$team1Container
-$team1Caption
-$team1Players
-$team1Lives
-$team1Coins
-$team2Container
-$team2Caption
-$team2Players
-$team2Lives
-$team2Coins
+const $mapCanvas = document.getElementById('mapCanvas');
 
-$btnGameList
-$btnStart
-$btnConnect
-$btnConnectPolice
-$btnConnectThief
-$btnLeave
-$btnPause
-$btnCancel
+const $gameCaption = document.getElementById('gameCaption');
+const $roomName = document.getElementById('roomName');
+const $roomStatus = document.getElementById('roomStatus');
 
-$imgHeart
-$imgCoin
-$imgPolice
-$imgPoliceSelf
-$imgThief
-$imgThiefSelf
-$imgSwitch
- */
+const $switchTimer = document.getElementById('switchTimer');
+const $team1Container = document.getElementById('team1Container');
+const $team1Caption = document.getElementById('team1Caption');
+const $team1Players = document.getElementById('team1Players');
+const $team1Lives = document.getElementById('team1Lives');
+const $team1Coins = document.getElementById('team1Coins');
+const $team2Container = document.getElementById('team2Container');
+const $team2Caption = document.getElementById('team2Caption');
+const $team2Players = document.getElementById('team2Players');
+const $team2Lives = document.getElementById('team2Lives');
+const $team2Coins = document.getElementById('team2Coins');
 
-// ...
+const $btnGameList = document.getElementById('btnConnectRandom');
+const $btnStart = document.getElementById('btnConnectRandom');
+const $btnConnect = document.getElementById('btnConnectRandom');
+const $btnConnectPolice = document.getElementById('btnConnectRandom');
+const $btnConnectThief = document.getElementById('btnConnectRandom');
+const $btnLeave = document.getElementById('btnConnectRandom');
+const $btnPause = document.getElementById('btnConnectRandom');
+const $btnCancel = document.getElementById('btnConnectRandom');
+
+const $imgHeart = document.getElementById('imgHeart');
+const $imgCoin = document.getElementById('imgCoin');
+const $imgPolice = document.getElementById('imgPolice');
+const $imgPoliceSelf = document.getElementById('imgPoliceSelf');
+const $imgThief = document.getElementById('imgThief');
+const $imgThiefSelf = document.getElementById('imgThiefSelf');
+const $imgSwitch = document.getElementById('imgSwitch');
 
 // game.html UI
 (function (app, $) {
@@ -76,19 +76,39 @@ $imgSwitch
                 /**
                  * TODO Task 2. Опишите функцию которая задаст размеры игрового поля
                  */
+                $canvas.style.width = `${width}px`;
+                $canvas.style.height = `${height}px`;
+                $canvas.width = `${width}`;
+                $canvas.height = `${height}`;
                 return $canvas;
             }
 
             function drawMapField(canvas, map, width, height, cellSize) {
                 const ctx = canvas.getContext("2d");
-                ctx.fillStyle = "#FFFFFF";
+                const colorWall = '#C0C0C0';
+                const colorFreePlace = '#FFFFFF';
+                const lineWidth = '1px';
+
+                ctx.fillStyle = colorFreePlace;
                 ctx.fillRect(0, 0, width, height);
-                ctx.strokeStyle = "#C0C0C0";
-                ctx.strokeWidth = "1px";
+                ctx.strokeStyle = colorWall;
+                ctx.strokeWidth = lineWidth;
                 /**
                  * TODO Task 3. Опишите заполнение цветами карты на канвасе
                  */
-                // ...
+                for (let i = 0; i < map.cells.length; i++) {
+                    const cell = map.cells[i];
+                    const x = i % map.width;
+                    const y = Math.floor(i / map.width);
+                    if (cell === GameApi.MapCellType.wall) {
+                        ctx.fillStyle = colorWall;
+                        ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+                    } else {
+                        ctx.fillStyle = colorFreePlace;
+                        ctx.rect(x * cellSize, y * cellSize, cellSize, cellSize);
+                        ctx.stroke();
+                    }
+                }
             }
 
             function getCanvasBuffer(width, height, map, cellSize) {
@@ -166,19 +186,19 @@ $imgSwitch
             }
             GameView.prototype.moveLeft = function (event) {
                 event.preventDefault();
-                this.state.game.stopMoving();
+                this.state.game.beginMove(GameApi.MoveDirection.left);
             }
             GameView.prototype.moveUp = function (event) {
                 event.preventDefault();
-                this.state.game.beginMove(GameApi.MoveDirection.left);
+                this.state.game.beginMove(GameApi.MoveDirection.top);
             }
             GameView.prototype.moveRight = function (event) {
                 event.preventDefault();
-                this.state.game.beginMove(GameApi.MoveDirection.top);
+                this.state.game.beginMove(GameApi.MoveDirection.right);
             }
             GameView.prototype.moveDown = function (event) {
                 event.preventDefault();
-                this.state.game.beginMove(GameApi.MoveDirection.right);
+                this.state.game.beginMove(GameApi.MoveDirection.bottom);
             }
 
             GameView.prototype.bindButtons = function () {
@@ -187,7 +207,14 @@ $imgSwitch
                  * TODO Task 4. Используя addEventListener повешайте обработчики событий на кнопки
                  *  нажатия на кнопки это событие click
                  */
-                // ...
+                $btnGameList.addEventListener('click', this.goToGameList);
+                $btnStart.addEventListener('click', this.startGame);
+                $btnConnect.addEventListener('click', this.joinAsRandom);
+                $btnConnectPolice.addEventListener('click', this.joinAsPolice);
+                $btnConnectThief.addEventListener('click', this.joinAsThief);
+                $btnLeave.addEventListener('click', this.leaveGame);
+                $btnPause.addEventListener('click', this.pauseGame);
+                $btnCancel.addEventListener('click', this.cancelGame);
 
                 window.addEventListener('keydown', (event) => {
                     if ($lastKey === event.key) {
@@ -196,8 +223,22 @@ $imgSwitch
                     /**
                      * TODO Task 5. Допишите обработку нажатий клавиш передвижения
                      */
-                    switch (event.key) {
-                        // ...
+                    switch (event.code) {
+                        case 'ArrowUp':
+                            this.moveUp();
+                            break;
+                        case 'ArrowRight':
+                            this.moveRight();
+                            break;
+                        case 'ArrowDown':
+                            this.moveDown();
+                            break;
+                        case 'ArrowLeft':
+                            this.moveLeft();
+                            break;
+                        case 'Space':
+                            this.stopMoving();
+                            break;
                     }
                 });
                 window.addEventListener('keyup', () => $lastKey = -1);
@@ -288,9 +329,13 @@ $imgSwitch
                 /**
                  * TODO: Task 6. Поменяйте под вашу вёрстку
                  */
-                utils.reWriteDomElement(
-                    this.game.$gameCaption, `<div class='game-caption-name'>${name} <span class='game-caption-status game-caption-status-${status}'>${utils.getStatusName(status)}</span></div>`,
-                );
+                $roomName.innerHTML = name;
+                $roomStatus.innerHTML = utils.getStatusName(status);
+                /**
+                 * TODO: ДЗ. Task 6.1. Удалить старые значения статусов
+                 */
+                //...
+                $gameCaption.classList.add(`game-caption--status_${status}`);
             };
             GameView.prototype.setTimer = function (data) {
                 let seconds = data.s;
@@ -310,12 +355,15 @@ $imgSwitch
                 /**
                  * TODO: Task 7. Поменяйте под вашу вёрстку
                  */
-                return `<div id='player${player.id}' class='game-player game-player-status-${status}'>
-                    <span class='game-player-name'>${player.name}</span>
-                     [<span class='game-player-coins'>${player.coins}</span>
-                    <span class='game-player-lives'>${player.lives}</span>
-                    <span class='game-player-deaths'>${player.deaths}</span>]
-                    </div>`;
+                console.log('player:', player);
+                return `<div class="players__item players__item--status_${status}" id="player${player.id}">
+                    <span class="login">${player.name}</span>
+                    <div class="scope">
+                        <div class="scope__item scope__item--coins">${player.coins}</div>
+                        <div class="scope__item scope__item--lives">${player.lives}</div>
+                        <div class="scope__item scope__item--dies">${player.deaths}</div>
+                    </div>
+                </div>`;
             };
             GameView.prototype.updatePlayer = function (player) {
                 $("#player" + player.id).replaceWith(this.getPlayer(player));
